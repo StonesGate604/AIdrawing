@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Drawing Recorder</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <link rel="stylesheet" href="drawing_recorder_p5.css">
+</head>
+<body>
+
+<!-- 右边控制面板 -->
+<div id="controls">
+
+  <div>
+    <div class="section-title">colors</div>
+    <div id="color-row"></div>
+  </div>
+
+  <div>
+    <div class="section-title">tools</div>
+    <div style="display:flex; gap:4px; flex-wrap:wrap;">
+      <button class="tool-btn selected" id="btn-brush" onclick="selectTool('brush')">✏️ brush</button>
+      <button class="tool-btn" id="btn-eraser" onclick="selectTool('eraser')">⬜ eraser</button>
+      <button class="tool-btn" id="btn-fill" onclick="selectTool('fill')">🪣 fill</button>
+    </div>
+  </div>
+
+  <div>
+    <div class="section-title">Brush Thickness: <span id="size-label">12</span>px</div>
+    <input type="range" id="brush-slider" min="2" max="60" value="12"
+           oninput="brushSize = parseInt(this.value); document.getElementById('size-label').textContent = brushSize;">
+  </div>
+
+  <div>
+    <div class="section-title">actions</div>
+    <button class="action-btn" onclick="undoLast()">↩️ Return (Ctrl+Z)</button>
+    <br><br>
+    <button class="action-btn" onclick="clearDrawing()">🗑️ Clear Canvas</button>
+  </div>
+
+  <hr style="border-color:#444;">
+
+  <div>
+    <div class="section-title">record</div>
+    <button class="action-btn" id="rec-btn" onclick="toggleRecording()">⏺ start recording</button>
+    <br><br>
+    <button class="action-btn" onclick="saveData()">⬇️ save data</button>
+  </div>
+
+  <div id="rec-info">
+    <div>status: <span id="rec-status">not recording</span></div>
+    <div>steps: <span id="step-display">0</span></div>
+    <div>sessions: <span id="session-display">0</span></div>
+  </div>
+
+</div>
+
+<script src="drawing_recorder_p5.js"></script>
+
+</body>
+</html>

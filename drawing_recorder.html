@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DrawRec — AI Training Data Collector</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="logo">DRAWREC <span>v0.1</span></div>
+  <div style="font-size:11px; color:var(--muted); font-family:'Space Mono',monospace;">AI Training Data Collector</div>
+  <div id="rec-status">
+    <div id="rec-dot"></div>
+    <span id="rec-label">IDLE</span>
+    <div id="step-count">0 steps</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- LEFT TOOLBAR -->
+  <div id="toolbar">
+    <button class="tool-btn active" id="btn-brush" data-tool="brush" data-tip="Brush" onclick="selectTool('brush')">✏️</button>
+    <button class="tool-btn" id="btn-pen" data-tool="pen" data-tip="Pen (hard)" onclick="selectTool('pen')">🖊️</button>
+    <button class="tool-btn" id="btn-fill" data-tool="fill" data-tip="Fill" onclick="selectTool('fill')">🪣</button>
+    <button class="tool-btn" id="btn-eraser" data-tool="eraser" data-tip="Eraser" onclick="selectTool('eraser')">🔲</button>
+    <div class="tool-sep"></div>
+    <button class="tool-btn" data-tip="Undo (Ctrl+Z)" onclick="undo()">↩️</button>
+    <button class="tool-btn" data-tip="Clear canvas" onclick="clearCanvas()">🗑️</button>
+  </div>
+
+  <!-- CANVAS -->
+  <div id="canvas-wrap">
+    <div id="canvas-container">
+      <canvas id="main-canvas" width="600" height="600"></canvas>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div id="rightpanel">
+
+    <!-- COLOR -->
+    <div class="panel-section">
+      <div class="panel-label">Color</div>
+      <div id="color-display">
+        <div class="swatch" id="color-swatch"></div>
+        <input type="color" id="color-picker" value="#000000">
+      </div>
+      <div id="hex-display">#000000</div>
+      <div id="palette"></div>
+    </div>
+
+    <!-- BRUSH -->
+    <div class="panel-section">
+      <div class="panel-label">Brush Size</div>
+      <input type="range" id="brush-slider" min="1" max="80" value="12">
+      <div id="brush-preview"><div id="brush-circle"></div></div>
+      <div id="brush-size-label">12 px</div>
+    </div>
+
+    <!-- OPACITY -->
+    <div class="panel-section">
+      <div class="panel-label">Opacity</div>
+      <input type="range" id="opacity-slider" min="5" max="100" value="100">
+      <div id="opacity-label">100%</div>
+    </div>
+
+    <!-- CANVAS SIZE -->
+    <div class="panel-section">
+      <div class="panel-label">Canvas Size</div>
+      <button class="size-btn active" onclick="resizeCanvas(400,400)">400²</button>
+      <button class="size-btn" onclick="resizeCanvas(600,600)">600²</button>
+      <button class="size-btn" onclick="resizeCanvas(800,800)">800²</button>
+      <button class="size-btn" onclick="resizeCanvas(512,512)">512²</button>
+    </div>
+
+    <!-- RECORDER -->
+    <div class="panel-section" id="rec-panel">
+      <div class="panel-label">Recorder</div>
+
+      <div id="stats-grid" style="margin-bottom:12px;">
+        <div class="stat-box">
+          <div class="stat-num" id="stat-steps">0</div>
+          <div class="stat-label">STEPS</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="stat-sessions">0</div>
+          <div class="stat-label">SESSIONS</div>
+        </div>
+      </div>
+
+      <button class="rec-btn start-btn" id="start-stop-btn" onclick="toggleRecording()">
+        <span id="rec-btn-icon">⏺</span>
+        <span id="rec-btn-text">START REC</span>
+      </button>
+      <button class="rec-btn save-btn" onclick="saveSession()">
+        ⬇ SAVE SESSION
+      </button>
+      <button class="rec-btn save-btn" onclick="saveAllSessions()">
+        📦 SAVE ALL
+      </button>
+      <button class="rec-btn clear-btn" onclick="clearSessions()">
+        ✕ CLEAR DATA
+      </button>
+
+      <div class="panel-label" style="margin-top:12px;">Recent Actions</div>
+      <div id="session-log"></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
