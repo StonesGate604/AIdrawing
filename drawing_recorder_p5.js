@@ -1,6 +1,7 @@
 // ==========================================
 // 全局状态变量
 // ==========================================
+let currentStrokePoints = []; // 当前笔画的点列表
 let currentTool = 'brush'; // 当前工具
 let currentColor = '#000000'; // 当前颜色
 let brushSize = 12; // 画笔大小
@@ -65,7 +66,7 @@ function selectTool(tool) {
 new p5(function (p) {
     p.setup = function () {
         // 创建600x600的画布，放在body最前面（左边）
-        const cnv = p.createCanvas(window.innerWidth-300, window.innerHeight);
+        const cnv = p.createCanvas(window.innerWidth - 300, window.innerHeight);
         cnv.parent(document.body); // 插到body里，在controls前面
         document.body.insertBefore(cnv.elt, document.getElementById('controls'));
 
@@ -73,7 +74,7 @@ new p5(function (p) {
 
         window.addEventListener('resize', function () {
             const snapshot = p.canvas.toDataURL();
-            p.resizeCanvas(window.innerWidth-300, window.innerHeight);
+            p.resizeCanvas(window.innerWidth - 300, window.innerHeight);
             const img = new Image();
             img.src = snapshot;
             img.onload = () => p.drawingContext.drawImage(img, 0, 0);
@@ -87,6 +88,8 @@ new p5(function (p) {
 
     // ---- 鼠标按下 ----
     p.mousePressed = function () {
+
+        currentStrokePoints = []; //清空当前笔画的点列表
         // 只在画布范围内响应
         if (p.mouseX < 0 || p.mouseX > p.width || p.mouseY < 0 || p.mouseY > p.height) return;
 
@@ -126,6 +129,10 @@ new p5(function (p) {
             p.strokeWeight(brushSize * 2);
             p.line(p.pmouseX, p.pmouseY, p.mouseX, p.mouseY);
         }
+        currentStrokePoints.push({
+            x: +(p.mouseX / p.width).toFixed(4),
+            y: +(p.mouseY / p.height).toFixed(4)
+        });
     };
 
     // ---- 鼠标松开：一笔结束 ----
@@ -225,20 +232,24 @@ new p5(function (p) {
 
         // 构建这一步的数据
         const step = {
-            step_id: stepCount,
-            action: {
-                type: actionType, // "stroke_end" 或 "fill"
-                tool: currentTool,
-                color: currentColor,
-                brush_size: brushSize,
-                // 坐标归一化到0-1，方便以后训练
+    step_id: stepCount,
+    action: {
+        type: actionType,
+        tool: currentTool,
+        color: currentColor,
+        brush_size: brushSize,
+        ...(actionType === 'fill'
+            ? {
                 x: +(x / p.width).toFixed(4),
-                y: +(y / p.height).toFixed(4),
-                x_start: +(strokeStartX / p.width).toFixed(4),
-                y_start: +(strokeStartY / p.height).toFixed(4)
-            },
-            snapshot // 这步完成后的画面
-        };
+                y: +(y / p.height).toFixed(4)
+              }
+            : {
+                points: currentStrokePoints
+              }
+        )
+    },
+    snapshot
+};
 
         session.push(step);
         stepCount++;
