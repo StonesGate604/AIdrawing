@@ -8,7 +8,6 @@
 </head>
 <body>
 
-<!-- 右边控制面板 -->
 <div id="controls">
 
   <div>
@@ -33,9 +32,9 @@
 
   <div>
     <div class="section-title">actions</div>
-    <button class="action-btn" onclick="undoLast()">↩️ Return (Ctrl+Z)</button>
+    <button class="action-btn" onclick="undoLast()">↩️ undo (Ctrl+Z)</button>
     <br><br>
-    <button class="action-btn" onclick="clearDrawing()">🗑️ Clear Canvas</button>
+    <button class="action-btn" onclick="clearDrawing()">🗑️ clear canvas</button>
   </div>
 
   <hr style="border-color:#444;">
@@ -53,6 +52,17 @@
     <div>sessions: <span id="session-display">0</span></div>
   </div>
 
+  <hr style="border-color:#444;">
+
+  
+</div>
+
+<!-- 底部时间轴 -->
+<div id="timeline-bar">
+  <span style="color:#888; font-size:11px;">TIMELINE</span>
+  <input type="range" id="timeline" min="0" max="0" value="0"
+         oninput="seekTo(parseInt(this.value))">
+  <span id="tl-label">step 0</span>
 </div>
 
 <script src="drawing_recorder_p5.js"></script>
