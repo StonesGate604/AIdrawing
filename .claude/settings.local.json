@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -sI \"https://unpkg.com/@magenta/sketch\")",
+      "Bash(curl -s \"https://unpkg.com/@magenta/sketch@0.2.1/?meta\")",
+      "Bash(curl -s \"https://unpkg.com/@magenta/sketch@0.2.0/?meta\")",
+      "Bash(curl -s \"https://unpkg.com/@magenta/sketch@0.2.0/dist/magentasketch.js\")",
+      "Bash(curl -sI \"https://cdn.jsdelivr.net/npm/@magenta/sketch@0.2.0/dist/magentasketch.js\")",
+      "Bash(grep -o '.\\\\{0,40\\\\}SketchRNN.\\\\{0,40\\\\}')",
+      "Bash(curl -s \"https://cdn.jsdelivr.net/npm/@magenta/sketch@0.2.0/dist/magentasketch.js\")",
+      "Bash(curl -o /dev/null -s -w \"%{http_code}\" \"https://storage.googleapis.com/quickdraw-models/sketchRNN/large_models/cat.gen.json\")",
+      "Read(//tmp/**)",
+      "Bash(grep -o 'storage\\\\.googleapis\\\\.com[^\"'\"'\"' \\\\\\\\t\\\\\\\\n]*' /tmp/magentasketch.js)",
+      "Bash(grep -o 'quickdraw[^\"'\"'\"' \\\\\\\\t\\\\\\\\n]*' /tmp/magentasketch.js)",
+      "Bash(grep -o \"https://[^\\\\\"' \\)\\\\\\\\\\\\\\\\]*\" /tmp/magentasketch.js)",
+      "Bash(python3)",
+      "Bash(node -e ':*)",
+      "Read(//c/tmp/**)",
+      "Bash(curl -L -s \"https://cdn.jsdelivr.net/npm/@magenta/sketch@0.2.0/dist/magentasketch.js\")",
+      "Bash(grep -o \"SketchRNN.\\\\{0,500\\\\}\" /tmp/magentasketch.js)",
+      "Bash(ls /tmp/magenta*)",
+      "Bash(python3 -c ':*)",
+      "Bash(python3 /tmp/analyze.py)",
+      "Bash(curl -L -s \"https://cdn.jsdelivr.net/npm/@magenta/sketch@0.2.0/dist/magentasketch.js\" -o C:/temp/magentasketch.js)",
+      "Read(//c/temp/**)"
+    ]
+  }
+}

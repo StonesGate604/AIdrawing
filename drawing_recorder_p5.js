@@ -13,6 +13,17 @@ let allSessions = [];         // 所有session
 let stepCount = 0;            // 当前步数
 let strokeStartX = 0;
 let strokeStartY = 0;
+let sketchModel = null;
+let loadedModelName = '';
+let isModelLoading = false;
+let isAutoDrawing = false;
+let pendingStroke = null;
+let aiPenX = 0;
+let aiPenY = 0;
+let aiCurrentPoints = [];
+let aiBrushSize = 3;
+let aiColor = '#111111';
+let currentTimelineIndex = -1;
 
 const COLORS = [
     '#000000', '#ffffff', '#ff4444', '#ff8800',
@@ -52,6 +63,34 @@ function selectTool(tool) {
     document.getElementById('btn-' + tool).classList.add('selected');
 }
 
+function truncateFutureStepsIfNeeded() {
+    if (currentTimelineIndex >= stepCount - 1) return;
+
+    const keepCount = Math.max(0, currentTimelineIndex + 1);
+    session = session.slice(0, keepCount);
+    stepCount = session.length;
+    document.getElementById('step-display').textContent = stepCount;
+    updateTimeline();
+}
+
+function getLastStrokeEndPoint() {
+    if (session.length === 0) return null;
+
+    const from = Math.min(currentTimelineIndex, session.length - 1);
+    for (let i = from; i >= 0; i--) {
+        const action = session[i].action;
+        if (!action || !Array.isArray(action.points) || action.points.length === 0) continue;
+
+        const last = action.points[action.points.length - 1];
+        return {
+            x: last.x * window._p.width,
+            y: last.y * window._p.height
+        };
+    }
+
+    return null;
+}
+
 // ==========================================
 // p5.js 主程序
 // ==========================================
@@ -78,11 +117,53 @@ new p5(function (p) {
         });
     };
 
-    p.draw = function () {};
+    p.draw = function () {
+        if (!isAutoDrawing || !pendingStroke) return;
+
+        const prevX = aiPenX;
+        const prevY = aiPenY;
+        aiPenX += pendingStroke.dx;
+        aiPenY += pendingStroke.dy;
+
+        if (pendingStroke.pen === 'down') {
+            p.stroke(aiColor);
+            p.strokeWeight(aiBrushSize);
+            p.line(prevX, prevY, aiPenX, aiPenY);
+
+            if (aiCurrentPoints.length === 0) {
+                aiCurrentPoints.push({
+                    x: +(prevX / p.width).toFixed(4),
+                    y: +(prevY / p.height).toFixed(4)
+                });
+            }
+
+            aiCurrentPoints.push({
+                x: +(aiPenX / p.width).toFixed(4),
+                y: +(aiPenY / p.height).toFixed(4)
+            });
+        }
+
+        if ((pendingStroke.pen === 'up' || pendingStroke.pen === 'end') && aiCurrentPoints.length > 1) {
+            captureAIStep();
+            aiCurrentPoints = [];
+        }
+
+        if (pendingStroke.pen === 'end') {
+            stopSketchRNN();
+            setAiStatus('status: completed');
+            pendingStroke = null;
+            return;
+        }
+
+        pendingStroke = null;
+        requestNextStroke();
+    };
 
     // ---- 鼠标按下 ----
     p.mousePressed = function () {
         if (p.mouseX < 0 || p.mouseX > p.width || p.mouseY < 0 || p.mouseY > p.height) return;
+
+        truncateFutureStepsIfNeeded();
 
         currentStrokePoints = []; // 清空当前笔画的点
         undoStack.push(p.canvas.toDataURL());
@@ -156,7 +237,15 @@ new p5(function (p) {
         // 清空画布时也清空session和时间轴
         session = [];
         stepCount = 0;
+        currentTimelineIndex = -1;
         updateTimeline();
+
+        aiPenX = p.width / 2;
+        aiPenY = p.height / 2;
+        aiCurrentPoints = [];
+        if (sketchModel) {
+            sketchModel.reset();
+        }
     };
 
     // ==========================================
@@ -252,6 +341,7 @@ function updateTimeline() {
     tl.max = Math.max(0, stepCount - 1);
     // 自动滑到最新一步
     tl.value = Math.max(0, stepCount - 1);
+    currentTimelineIndex = stepCount - 1;
     document.getElementById('tl-label').textContent = stepCount;
 }
 
@@ -263,6 +353,8 @@ function updateTimeline() {
 function seekTo(index) {
     if (session.length === 0) return;
 
+    currentTimelineIndex = index;
+
     // 更新标签显示
     document.getElementById('tl-label').textContent = index + 1;
 
@@ -273,7 +365,7 @@ function seekTo(index) {
     for (let i = 0; i <= index; i++) {
         const action = session[i].action;
 
-        if (action.type === 'stroke_end') {
+        if (action.type === 'stroke_end' || action.type === 'ai_stroke_end') {
             // 重新画这一笔
             // 用原生canvas API（window._ctx）而不是p5，因为这里在p5实例外面
             window._ctx.beginPath();
@@ -325,6 +417,7 @@ function toggleRecording() {
         isRecording = true;
         session = [];      // 开始新录制时清空session
         stepCount = 0;
+        currentTimelineIndex = -1;
         updateTimeline();
         document.getElementById('rec-btn').textContent = '⏹ stop recording';
         document.getElementById('rec-status').textContent = '🔴 recording';
@@ -372,3 +465,105 @@ async function saveData() {
     link.download = `drawing_data_${Date.now()}.zip`;
     link.click();
 }
+
+function setAiStatus(text) {
+    const el = document.getElementById('ai-status');
+    if (el) el.textContent = text;
+}
+
+function captureAIStep() {
+    const p = window._p;
+    const snapshot = p.canvas.toDataURL('image/png');
+
+    const step = {
+        step_id: stepCount,
+        action: {
+            type: 'ai_stroke_end',
+            tool: 'ai_brush',
+            color: aiColor,
+            brush_size: aiBrushSize,
+            model: loadedModelName,
+            points: aiCurrentPoints
+        },
+        snapshot
+    };
+
+    session.push(step);
+    stepCount++;
+    currentTimelineIndex = stepCount - 1;
+    document.getElementById('step-display').textContent = stepCount;
+    updateTimeline();
+}
+
+function requestNextStroke() {
+    if (!isAutoDrawing || !sketchModel) return;
+
+    sketchModel.generate(function (err, strokePath) {
+        if (err) {
+            console.error(err);
+            stopSketchRNN();
+            setAiStatus('status: generate failed');
+            return;
+        }
+        pendingStroke = strokePath;
+    });
+}
+
+function ensureModelLoaded(callback) {
+    const selectedName = document.getElementById('ai-model').value;
+    if (sketchModel && loadedModelName === selectedName) {
+        callback();
+        return;
+    }
+
+    loadSketchModel(callback);
+}
+
+window.loadSketchModel = function (done) {
+    if (isModelLoading) return;
+
+    const modelName = document.getElementById('ai-model').value;
+    isModelLoading = true;
+    setAiStatus(`status: loading ${modelName}...`);
+
+    sketchModel = ml5.sketchRNN(modelName, function () {
+        loadedModelName = modelName;
+        isModelLoading = false;
+        aiPenX = window._p.width / 2;
+        aiPenY = window._p.height / 2;
+        aiCurrentPoints = [];
+        sketchModel.reset();
+        setAiStatus(`status: ${modelName} ready`);
+        if (typeof done === 'function') done();
+    });
+};
+
+window.startSketchRNN = function () {
+    ensureModelLoaded(function () {
+        if (isAutoDrawing) return;
+
+        truncateFutureStepsIfNeeded();
+
+        const anchor = getLastStrokeEndPoint();
+
+        undoStack.push(window._p.canvas.toDataURL());
+        isAutoDrawing = true;
+        pendingStroke = null;
+        aiCurrentPoints = [];
+        aiPenX = anchor ? anchor.x : window._p.width / 2;
+        aiPenY = anchor ? anchor.y : window._p.height / 2;
+        sketchModel.reset();
+        setAiStatus('status: drawing...');
+        requestNextStroke();
+    });
+};
+
+window.stopSketchRNN = function () {
+    isAutoDrawing = false;
+    pendingStroke = null;
+    if (aiCurrentPoints.length > 1) {
+        captureAIStep();
+        aiCurrentPoints = [];
+    }
+    setAiStatus('status: stopped');
+};
