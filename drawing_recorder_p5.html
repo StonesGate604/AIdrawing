@@ -5,40 +5,48 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
   <script src="https://unpkg.com/ml5@0.12.2/dist/ml5.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
   <link rel="stylesheet" href="drawing_recorder_p5.css">
 </head>
 <body>
 
-<!-- TOP BAR -->
 <div id="topbar">
-  <span class="app-name">DRAWREC</span>
-  <div class="divider"></div>
-  <button class="top-btn" onclick="undoLast()">Undo</button>
-  <button class="top-btn" onclick="clearDrawing()">Clear</button>
-  <button class="top-btn" onclick="toggleRecording()" id="rec-top-btn">⏺ Record</button>
-  <button class="top-btn" onclick="saveData()">⬇ Save</button>
+  <span class="app-name">AI DRAWING STUDIO</span>
+  <button class="top-btn" onclick="undoLast()">
+    <i data-lucide="undo-2"></i> Undo
+  </button>
+  <button class="top-btn" onclick="clearDrawing()">
+    <i data-lucide="trash-2"></i> Clear
+  </button>
 </div>
 
-<!-- LEFT TOOLBAR -->
 <div id="toolbar">
-  <button class="tool-btn selected" id="btn-brush" onclick="selectTool('brush')" title="Brush">✏️</button>
-  <button class="tool-btn" id="btn-eraser" onclick="selectTool('eraser')" title="Eraser">⬜</button>
-  <button class="tool-btn" id="btn-fill" onclick="selectTool('fill')" title="Fill">🪣</button>
+  <button class="tool-btn selected" id="btn-brush" onclick="selectTool('brush')" title="Brush">
+    <i data-lucide="pencil"></i>
+  </button>
+  <button class="tool-btn" id="btn-eraser" onclick="selectTool('eraser')" title="Eraser">
+    <i data-lucide="eraser"></i>
+  </button>
+  <button class="tool-btn" id="btn-fill" onclick="selectTool('fill')" title="Fill">
+    <i data-lucide="paint-bucket"></i>
+  </button>
+  <div class="tool-sep"></div>
+  <button class="tool-btn" onclick="undoLast()" title="Undo">
+    <i data-lucide="undo-2"></i>
+  </button>
+  <button class="tool-btn" onclick="clearDrawing()" title="Clear">
+    <i data-lucide="trash-2"></i>
+  </button>
 </div>
 
-<!-- CANVAS AREA -->
 <div id="canvas-area"></div>
 
-<!-- RIGHT PANEL -->
 <div id="controls">
-
-  <!-- COLOR -->
   <div class="panel-section">
     <div class="section-title">Color</div>
     <div id="color-row"></div>
   </div>
 
-  <!-- BRUSH -->
   <div class="panel-section">
     <div class="section-title">Brush Size</div>
     <div class="slider-row">
@@ -48,20 +56,22 @@
     </div>
   </div>
 
-  <!-- RECORD -->
   <div class="panel-section">
     <div class="section-title">Record</div>
-    <button class="action-btn" id="rec-btn" onclick="toggleRecording()">⏺ Start Recording</button>
-    <button class="action-btn" onclick="saveData()">⬇ Save Data</button>
-    <div id="rec-info" style="margin-top:6px;">
+    <button class="action-btn" id="rec-btn" onclick="toggleRecording()">
+      <i data-lucide="circle"></i> Start Recording
+    </button>
+    <button class="action-btn" onclick="saveData()">
+      <i data-lucide="download"></i> Save Data
+    </button>
+    <div id="rec-info">
       <div>Status: <span id="rec-status">idle</span></div>
       <div>Steps: <span id="step-display">0</span></div>
       <div>Sessions: <span id="session-display">0</span></div>
     </div>
   </div>
 
-  <!-- SKETCHRNN -->
-  <div class="panel-section">
+  <div class="panel-section" id="sketch-panel">
     <div class="section-title">SketchRNN</div>
     <select id="ai-model">
       <option value="cat">cat</option>
@@ -71,23 +81,43 @@
       <option value="tree">tree</option>
       <option value="bicycle">bicycle</option>
     </select>
-    <button class="action-btn" onclick="loadSketchModel()">🧠 Load Model</button>
-    <button class="action-btn" onclick="startSketchRNN()">▶ Start AI Draw</button>
-    <button class="action-btn" onclick="stopSketchRNN()">⏹ Stop AI Draw</button>
-    <div id="ai-status">status: idle</div>
+    <button class="action-btn" onclick="loadSketchModel()">
+      <i data-lucide="brain"></i> Load Model
+    </button>
+  </div>
+</div>
+
+<div id="timeline-bar">
+  <div id="ai-player-center" aria-label="AI controls">
+    <button class="ai-main-btn start" onclick="startSketchRNN()" title="Start AI Draw">
+      <i data-lucide="play"></i>
+    </button>
+    <button class="ai-main-btn stop" onclick="stopSketchRNN()" title="Stop AI Draw">
+      <i data-lucide="square"></i>
+    </button>
+    <span id="ai-status">status: idle</span>
   </div>
 
+  <div class="tl-header">
+    <span class="tl-title">Timeline</span>
+    <span id="tl-label">step 0</span>
+  </div>
+
+  <div class="tl-track">
+    <div id="tl-icons"></div>
+    <input type="range" id="timeline" min="0" max="0" value="0"
+           oninput="seekTo(parseInt(this.value))">
+    <div id="tl-cursor" style="left:0"></div>
+  </div>
 </div>
 
-<!-- BOTTOM TIMELINE -->
-<div id="timeline-bar">
-  <span class="tl-label">Timeline</span>
-  <input type="range" id="timeline" min="0" max="0" value="0"
-         oninput="seekTo(parseInt(this.value))">
-  <span id="tl-label">step 0</span>
-</div>
-
-<script src="drawing_recorder_p5.js"></script>
+<script src="drawing_recorder_p5.state.js"></script>
+<script src="drawing_recorder_p5.timeline.js"></script>
+<script src="drawing_recorder_p5.ai.js"></script>
+<script src="drawing_recorder_p5.canvas.js"></script>
+<script>
+  lucide.createIcons();
+</script>
 
 </body>
 </html>
