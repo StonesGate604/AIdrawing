@@ -9,55 +9,61 @@
 </head>
 <body>
 
+<!-- TOP BAR -->
+<div id="topbar">
+  <span class="app-name">DRAWREC</span>
+  <div class="divider"></div>
+  <button class="top-btn" onclick="undoLast()">Undo</button>
+  <button class="top-btn" onclick="clearDrawing()">Clear</button>
+  <button class="top-btn" onclick="toggleRecording()" id="rec-top-btn">⏺ Record</button>
+  <button class="top-btn" onclick="saveData()">⬇ Save</button>
+</div>
+
+<!-- LEFT TOOLBAR -->
+<div id="toolbar">
+  <button class="tool-btn selected" id="btn-brush" onclick="selectTool('brush')" title="Brush">✏️</button>
+  <button class="tool-btn" id="btn-eraser" onclick="selectTool('eraser')" title="Eraser">⬜</button>
+  <button class="tool-btn" id="btn-fill" onclick="selectTool('fill')" title="Fill">🪣</button>
+</div>
+
+<!-- CANVAS AREA -->
+<div id="canvas-area"></div>
+
+<!-- RIGHT PANEL -->
 <div id="controls">
 
-  <div>
-    <div class="section-title">colors</div>
+  <!-- COLOR -->
+  <div class="panel-section">
+    <div class="section-title">Color</div>
     <div id="color-row"></div>
   </div>
 
-  <div>
-    <div class="section-title">tools</div>
-    <div style="display:flex; gap:4px; flex-wrap:wrap;">
-      <button class="tool-btn selected" id="btn-brush" onclick="selectTool('brush')">✏️ brush</button>
-      <button class="tool-btn" id="btn-eraser" onclick="selectTool('eraser')">⬜ eraser</button>
-      <button class="tool-btn" id="btn-fill" onclick="selectTool('fill')">🪣 fill</button>
+  <!-- BRUSH -->
+  <div class="panel-section">
+    <div class="section-title">Brush Size</div>
+    <div class="slider-row">
+      <input type="range" id="brush-slider" min="2" max="60" value="12"
+             oninput="brushSize = parseInt(this.value); document.getElementById('size-label').textContent = brushSize + 'px';">
+      <span class="slider-val" id="size-label">12px</span>
     </div>
   </div>
 
-  <div>
-    <div class="section-title">Brush Thickness: <span id="size-label">12</span>px</div>
-    <input type="range" id="brush-slider" min="2" max="60" value="12"
-           oninput="brushSize = parseInt(this.value); document.getElementById('size-label').textContent = brushSize;">
+  <!-- RECORD -->
+  <div class="panel-section">
+    <div class="section-title">Record</div>
+    <button class="action-btn" id="rec-btn" onclick="toggleRecording()">⏺ Start Recording</button>
+    <button class="action-btn" onclick="saveData()">⬇ Save Data</button>
+    <div id="rec-info" style="margin-top:6px;">
+      <div>Status: <span id="rec-status">idle</span></div>
+      <div>Steps: <span id="step-display">0</span></div>
+      <div>Sessions: <span id="session-display">0</span></div>
+    </div>
   </div>
 
-  <div>
-    <div class="section-title">actions</div>
-    <button class="action-btn" onclick="undoLast()">↩️ undo (Ctrl+Z)</button>
-    <br><br>
-    <button class="action-btn" onclick="clearDrawing()">🗑️ clear canvas</button>
-  </div>
-
-  <hr style="border-color:#444;">
-
-  <div>
-    <div class="section-title">record</div>
-    <button class="action-btn" id="rec-btn" onclick="toggleRecording()">⏺ start recording</button>
-    <br><br>
-    <button class="action-btn" onclick="saveData()">⬇️ save data</button>
-  </div>
-
-  <div id="rec-info">
-    <div>status: <span id="rec-status">not recording</span></div>
-    <div>steps: <span id="step-display">0</span></div>
-    <div>sessions: <span id="session-display">0</span></div>
-  </div>
-
-  <hr style="border-color:#444;">
-
-  <div>
-    <div class="section-title">sketchRNN</div>
-    <select id="ai-model" style="width:100%; margin-bottom:8px;">
+  <!-- SKETCHRNN -->
+  <div class="panel-section">
+    <div class="section-title">SketchRNN</div>
+    <select id="ai-model">
       <option value="cat">cat</option>
       <option value="bird">bird</option>
       <option value="flower">flower</option>
@@ -65,20 +71,17 @@
       <option value="tree">tree</option>
       <option value="bicycle">bicycle</option>
     </select>
-    <button class="action-btn" onclick="loadSketchModel()">🧠 load model</button>
-    <br><br>
-    <button class="action-btn" onclick="startSketchRNN()">▶ start AI draw</button>
-    <br><br>
-    <button class="action-btn" onclick="stopSketchRNN()">⏹ stop AI draw</button>
-    <div id="ai-status" style="margin-top:8px; color:#aaff44; font-size:12px;">status: idle</div>
+    <button class="action-btn" onclick="loadSketchModel()">🧠 Load Model</button>
+    <button class="action-btn" onclick="startSketchRNN()">▶ Start AI Draw</button>
+    <button class="action-btn" onclick="stopSketchRNN()">⏹ Stop AI Draw</button>
+    <div id="ai-status">status: idle</div>
   </div>
 
-  
 </div>
 
-<!-- 底部时间轴 -->
+<!-- BOTTOM TIMELINE -->
 <div id="timeline-bar">
-  <span style="color:#888; font-size:11px;">TIMELINE</span>
+  <span class="tl-label">Timeline</span>
   <input type="range" id="timeline" min="0" max="0" value="0"
          oninput="seekTo(parseInt(this.value))">
   <span id="tl-label">step 0</span>
