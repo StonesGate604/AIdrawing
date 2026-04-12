@@ -359,15 +359,21 @@ body {
 
 #tl-cursor {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: white;
+  top: 50%;
+  bottom: auto;
+  width: 3px;
+  height: 68%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.0), rgba(170,255,68,0.85), rgba(255,255,255,0.0));
   opacity: 0;
-  border-radius: 1px;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  transform-origin: center;
+  box-shadow:
+    0 0 10px rgba(170,255,68,0.55),
+    0 0 18px rgba(170,255,68,0.25);
   pointer-events: none;
   z-index: 20;
-  transition: left 0.05s, opacity 0.12s;
+  transition: left 0.05s, opacity 0.12s, transform 0.12s;
 }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
