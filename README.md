@@ -1,161 +1,282 @@
-# AIdrawing / AI Drawing Studio
+# AIdrawing — AI Drawing Studio
 
-## English
+> A human-AI collaborative drawing tool that keeps you in control of your own creative process.
 
-AIdrawing is an interactive drawing app built with p5.js. It supports brush-based drawing, erasing, fill operations, timeline replay, session recording, ZIP export, and SketchRNN-based AI drawing.
+AIdrawing is an interactive drawing application built with p5.js. It records every stroke you make as structured vector data, replays your drawing process on a scrubable timeline, and lets a SketchRNN model pick up where you left off — while you stay in the driver's seat.
 
-### Features
+Built for *Code Your Way* at ITP, NYU.
 
-- Brush, eraser, and fill tools
-- Color palette and brush size control
-- Session recording and export to ZIP
-- Timeline replay for recorded strokes
-- SketchRNN AI drawing
+---
 
-### Project Structure
+## Why This Exists
+When I started using generative AI tools for creative work, I kept running into the same frustration: generating an image from a prompt feels like gambling. The output is unpredictable, and when you finally get something close to what you want, you're stuck — no layers, no project file, nothing you can actually edit or build on.
+So I tried shifting the approach. Drawing and image editing are fundamentally sequential behaviors — a series of actions unfolding over time, not a single output. I wondered whether training an AI on that sequence, borrowing loosely from how embodied intelligence research thinks about motor learning, might work better than prompting a model for pixels.
+I should be clear: I'm not a machine learning researcher, and this project reflects that. It's a personal experiment built by someone learning as they go — part curiosity, part stubbornness, part not knowing what I didn't know. The code is rough in places, the training data is small, and there are almost certainly better ways to do most of what's here.
+But the question behind it still feels worth asking: what would it look like if AI assisted the process of making something, rather than just handing you the result?
+This is my small attempt at an answer.
 
-- `index.html` - Main page and script loading order
-- `drawing_recorder_p5.css` - UI styles
-- `drawing_recorder_p5.state.js` - Shared state and helpers
-- `drawing_recorder_p5.timeline.js` - Timeline rendering and interaction
-- `drawing_recorder_p5.ai.js` - SketchRNN logic
-- `drawing_recorder_p5.canvas.js` - p5 canvas input, drawing, recording, export
-- `train.py` - PyTorch training script
+---
 
-### Requirements
+## Features
 
-- Modern browser
-- Python 3.12+ for training
-- Python packages: `torch`, `torchvision`, `pillow`
+- Brush, eraser, and fill tools with color palette and size control
+- Full stroke recording as normalized vector point arrays
+- Session export to ZIP (PNG snapshots + JSON action data per step)
+- Timeline scrubber — drag to any step, canvas re-renders from action history
+- SketchRNN AI drawing — load a pretrained model and let it continue your sketch
+- AI strokes are recorded and replayed on the timeline just like human strokes
 
-### Run the App
+---
 
-1. Open `index.html` in a browser, or serve the folder with a local web server.
-2. Wait for the external CDN libraries to load: p5.js, ml5.js, JSZip, and Lucide.
+## Project Structure
 
-### Training Data Format
+```
+AIdrawing/
+├── index.html                        # Main page and script loading order
+├── drawing_recorder_p5.css           # UI styles
+├── drawing_recorder_p5.state.js      # Shared state and helper functions
+├── drawing_recorder_p5.canvas.js     # p5 canvas, drawing, recording, export
+├── drawing_recorder_p5.timeline.js   # Timeline rendering and scrubbing
+├── drawing_recorder_p5.ai.js         # SketchRNN model loading and generation
+├── train.py                          # PyTorch behavior cloning training script
+└── requirements.txt                  # Python training dependencies
+```
 
-The training script expects a folder that contains recorded session folders such as:
+---
 
-```text
+## Run the App
+
+Open `index.html` in a browser, or serve the folder with a local static server:
+
+```bash
+npx serve .
+```
+
+The app loads all dependencies from CDN (p5.js, ml5.js, JSZip, Lucide). No build step required.
+
+---
+
+## Training Data Format
+
+The recorder exports a ZIP containing one folder per session:
+
+```
 session_0/
-  step_0000.png
-  step_0000.json
+  step_0000.png     ← canvas snapshot after this step
+  step_0000.json    ← action data for this step
   step_0001.png
   step_0001.json
   ...
 ```
 
-Each JSON file should contain an `action` field and a `snapshot` image reference produced by the recorder.
+Each JSON looks like this:
 
-### Train the Model
+```json
+{
+  "step_id": 3,
+  "action": {
+    "type": "stroke_end",
+    "tool": "brush",
+    "color": "#000000",
+    "brush_size": 12,
+    "points": [
+      { "x": 0.42, "y": 0.36 },
+      { "x": 0.43, "y": 0.37 }
+    ]
+  }
+}
+```
 
-Install the dependencies with the project virtual environment:
+Coordinates are normalized to `[0, 1]` relative to canvas size.
 
-```powershell
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+---
+
+## Train the Model
+
+Set up the Python environment:
+
+```bash
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
 Run training:
 
-```powershell
-.\.venv\Scripts\python.exe train.py --data_dir .\your_session_folder
+```bash
+python train.py --data_dir .\session_0 --epochs 100
 ```
 
 Optional arguments:
 
-- `--epochs` - Number of training epochs
-- `--batch_size` - Batch size
-- `--lr` - Learning rate
-- `--img_size` - Input image size
+| Argument | Default | Description |
+|---|---|---|
+| `--epochs` | 50 | Number of training epochs |
+| `--batch_size` | 4 | Batch size |
+| `--lr` | 0.001 | Learning rate |
+| `--img_size` | 128 | Input image resolution |
 
-### Output
+**Output:**
+- `best_model.pth` — best checkpoint saved during training
+- `drawing_model.onnx` — exported ONNX model for JS integration via `onnxruntime-web`
 
-- `best_model.pth` - Best checkpoint saved during training
-- `drawing_model.onnx` - Exported ONNX model for JS integration
+GPU is used automatically if CUDA is available (recommended: NVIDIA RTX series).
 
-### Notes
+---
 
-- The project uses CDN-hosted front-end libraries, so no build step is required.
-- The recommended Python environment is `.venv` in the project root.
-- `requirements.txt` contains the minimal training dependencies.
+## Requirements
 
-## 中文
+**Frontend:** Modern browser with JavaScript enabled.
 
-AIdrawing 是一个基于 p5.js 的交互式绘图应用，支持画笔绘制、橡皮擦、填充、时间轴回放、会话录制、ZIP 导出，以及基于 SketchRNN 的 AI 绘图。
+**Training:**
+- Python 3.12+
+- PyTorch with CUDA support (recommended)
+- See `requirements.txt` for full list
 
-### 功能
+---
+⚠️ This project is actively under development. Features and data formats may change.
+*Made at ITP, NYU — Code Your Way, Spring 2026*
 
-- 画笔、橡皮擦、填充工具
-- 颜色面板与画笔大小控制
-- 会话录制并导出为 ZIP
-- 支持录制步骤的时间轴回放
-- SketchRNN AI 绘图
+---
+---
 
-### 项目结构
+# AIdrawing — AI 绘画工作室
 
-- `index.html` - 主页面与脚本加载顺序
-- `drawing_recorder_p5.css` - 界面样式
-- `drawing_recorder_p5.state.js` - 共享状态与辅助方法
-- `drawing_recorder_p5.timeline.js` - 时间轴渲染与交互
-- `drawing_recorder_p5.ai.js` - SketchRNN 逻辑
-- `drawing_recorder_p5.canvas.js` - p5 画布输入、绘制、录制与导出
-- `train.py` - PyTorch 训练脚本
+> 一个让创作者始终掌握主动权的人机协作绘画工具。
 
-### 环境要求
+AIdrawing 是一个基于 p5.js 的交互式绘图应用。它将你的每一笔记录为结构化的矢量数据，通过可拖拽的时间轴回放绘制过程，并允许 SketchRNN 模型从你停下的地方继续——而控制权始终在你手中。
 
-- 现代浏览器
-- 训练脚本需要 Python 3.12+
-- Python 依赖：`torch`、`torchvision`、`pillow`
+为 NYU ITP *Code Your Way* 课程而建。
 
-### 运行前端应用
+---
 
-1. 在浏览器中直接打开 `index.html`，或者使用本地静态服务器运行该目录。
-2. 等待外部 CDN 库加载完成：p5.js、ml5.js、JSZip 和 Lucide。
+## 为什么做这个
 
-### 训练数据格式
+为什么做这个
+在用生成式 AI 做创作的时候，我一直遇到同一个问题：用 prompt 生成图片像是在赌博。结果不可预测，好不容易得到一张还算满意的，你却什么都做不了——没有图层，没有工程文件，无从编辑，也无法继续。
+于是我尝试换了一个思路。画画和图片编辑本质上是序列行为——随时间展开的一系列动作，而不是一次性的输出。我想，如果借鉴具身智能研究中对动作学习的一些思路，让 AI 去学习这个动作序列，或许会比用 prompt 生成像素更有效？
+需要说明的是：我不是机器学习专业的学生，这个项目也如实反映了这一点。它是一个边学边做的个人实验——一部分出于好奇，一部分出于执着，还有一部分是不知道自己不知道什么。代码有些地方比较粗糙，训练数据量很小，很多地方应该有更好的做法。
+但背后的问题依然值得问：如果 AI 辅助的是制作过程，而不只是把结果交给你，会是什么样子？
+这个项目是我对这个问题的一次小小尝试。
 
-训练脚本期望的数据目录结构如下：
+---
 
-```text
+## 功能
+
+- 画笔、橡皮擦、填充工具，支持颜色面板和尺寸控制
+- 完整笔触录制，以归一化矢量点数组存储
+- 导出为 ZIP（每步包含 PNG 截图 + JSON 动作数据）
+- 时间轴拖拽——拖到任意步骤，画布从动作历史重新渲染
+- SketchRNN AI 绘图——加载预训练模型，让 AI 继续你的草图
+- AI 笔触与人类笔触一样被记录并在时间轴中显示
+
+---
+
+## 项目结构
+
+```
+AIdrawing/
+├── index.html                        # 主页面与脚本加载顺序
+├── drawing_recorder_p5.css           # 界面样式
+├── drawing_recorder_p5.state.js      # 共享状态与辅助方法
+├── drawing_recorder_p5.canvas.js     # p5 画布、绘制、录制、导出
+├── drawing_recorder_p5.timeline.js   # 时间轴渲染与交互
+├── drawing_recorder_p5.ai.js         # SketchRNN 模型加载与生成
+├── train.py                          # PyTorch 行为克隆训练脚本
+└── requirements.txt                  # Python 训练依赖
+```
+
+---
+
+## 运行前端应用
+
+直接在浏览器中打开 `index.html`，或使用本地静态服务器：
+
+```bash
+npx serve .
+```
+
+所有依赖通过 CDN 加载（p5.js、ml5.js、JSZip、Lucide），无需构建步骤。
+
+---
+
+## 训练数据格式
+
+录制器导出的 ZIP 中每个 session 一个文件夹：
+
+```
 session_0/
-  step_0000.png
-  step_0000.json
+  step_0000.png     ← 该步完成后的画布截图
+  step_0000.json    ← 该步的动作数据
   step_0001.png
   step_0001.json
   ...
 ```
 
-每个 JSON 文件应包含录制器生成的 `action` 字段和 `snapshot` 图像引用。
+每个 JSON 格式如下：
 
-### 训练模型
-
-使用项目虚拟环境安装依赖：
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```json
+{
+  "step_id": 3,
+  "action": {
+    "type": "stroke_end",
+    "tool": "brush",
+    "color": "#000000",
+    "brush_size": 12,
+    "points": [
+      { "x": 0.42, "y": 0.36 },
+      { "x": 0.43, "y": 0.37 }
+    ]
+  }
+}
 ```
 
-开始训练：
+坐标归一化到 `[0, 1]`，相对于画布尺寸。
 
-```powershell
-.\.venv\Scripts\python.exe train.py --data_dir .\your_session_folder
+---
+
+## 训练模型
+
+配置 Python 环境：
+
+```bash
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+运行训练：
+
+```bash
+python train.py --data_dir .\session_0 --epochs 100
 ```
 
 可选参数：
 
-- `--epochs` - 训练轮数
-- `--batch_size` - 批大小
-- `--lr` - 学习率
-- `--img_size` - 输入图像尺寸
+| 参数 | 默认值 | 说明 |
+|---|---|---|
+| `--epochs` | 50 | 训练轮数 |
+| `--batch_size` | 4 | 批大小 |
+| `--lr` | 0.001 | 学习率 |
+| `--img_size` | 128 | 输入图像分辨率 |
 
-### 输出结果
+**输出：**
+- `best_model.pth` — 训练过程中保存的最佳权重
+- `drawing_model.onnx` — 导出的 ONNX 模型，通过 `onnxruntime-web` 在 JS 中集成
 
-- `best_model.pth` - 训练过程中保存的最佳权重
-- `drawing_model.onnx` - 导出的 ONNX 模型，用于 JS 集成
+有 CUDA 时自动使用 GPU（推荐 NVIDIA RTX 系列）。
 
-### 说明
+---
 
-- 前端库通过 CDN 加载，因此不需要构建步骤。
-- 推荐使用项目根目录下的 `.venv`。
-- `requirements.txt` 已包含最小训练依赖。
+## 环境要求
+
+**前端：** 支持 JavaScript 的现代浏览器。
+
+**训练：**
+- Python 3.12+
+- 建议使用支持 CUDA 的 PyTorch
+- 完整依赖见 `requirements.txt`
+> ⚠️ 本项目正在开发中，功能与数据格式可能随时变动。
+---
+
+*Made at ITP, NYU — Code Your Way, Spring 2026*
