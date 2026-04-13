@@ -22,8 +22,8 @@ let aiPenY = 0;
 let aiCurrentPoints = [];
 let aiBrushSize = 6;
 let aiStrokeScale = 1;
-const AI_BASE_STROKE_SCALE = 1.5;
-const AI_BASE_CANVAS_MIN_EDGE = 800;
+const AI_BASE_STROKE_SCALE = 2;
+const AI_BASE_CANVAS_MIN_EDGE = 1000;
 let aiColor = '#aa44ff';
 
 let currentTimelineIndex = -1;
