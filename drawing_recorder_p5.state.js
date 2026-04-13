@@ -21,7 +21,7 @@ let aiPenX = 0;
 let aiPenY = 0;
 let aiCurrentPoints = [];
 let aiBrushSize = 6;
-let aiStrokeScale = 2.2;
+let aiStrokeScale = 1;
 let aiColor = '#aa44ff';
 
 let currentTimelineIndex = -1;
