@@ -6,6 +6,9 @@ new p5(function (p) {
         cnv.parent(area);
 
         p.background(255);
+        if (typeof window.updateAiStrokeScale === 'function') {
+            window.updateAiStrokeScale(p.width, p.height);
+        }
 
         window._p = p;
         window._ctx = p.drawingContext;
@@ -14,6 +17,9 @@ new p5(function (p) {
             const snapshot = p.canvas.toDataURL();
             const a = document.getElementById('canvas-area');
             p.resizeCanvas(a.clientWidth, a.clientHeight);
+            if (typeof window.updateAiStrokeScale === 'function') {
+                window.updateAiStrokeScale(p.width, p.height);
+            }
             const img = new Image();
             img.src = snapshot;
             img.onload = () => p.drawingContext.drawImage(img, 0, 0);
