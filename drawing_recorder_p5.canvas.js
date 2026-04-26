@@ -292,3 +292,30 @@ async function saveData() {
     link.download = `drawing_data_${Date.now()}.zip`;
     link.click();
 }
+
+async function uploadData() {
+    const toSave = [...allSessions];
+    if (isRecording && session.length > 0) toSave.push([...session]);
+    if (toSave.length === 0) { alert('No data to upload!'); return; }
+
+    // 只发JSON动作数据，不发截图
+    const payload = toSave.map(sess => 
+        sess.map(step => {
+            const meta = { ...step };
+            delete meta.snapshot;
+            return meta;
+        })
+    );
+
+    try {
+        const res = await fetch('https://你的服务器地址/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessions: payload })
+        });
+        if (res.ok) alert('Uploaded! Thank you for contributing data.');
+        else alert('Upload failed, please try again.');
+    } catch (e) {
+        alert('Network error: ' + e.message);
+    }
+}
