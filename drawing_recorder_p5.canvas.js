@@ -308,7 +308,7 @@ async function uploadData() {
     );
 
     try {
-        const res = await fetch('https://你的服务器地址/upload', {
+        const res = await fetch('https://http://34.61.122.32:3000/stats/upload', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ sessions: payload })
