@@ -67,6 +67,22 @@
       margin-top: 8px;
     }
 
+    .project-desc {
+      max-width: 600px;
+      text-align: center;
+      margin-bottom: 40px;
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.75;
+      opacity: 0.75;
+    }
+
+    .project-desc strong {
+      color: var(--text);
+      opacity: 1;
+      font-weight: 500;
+    }
+
     .modes {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -154,36 +170,6 @@
     .mode-card.recorder .mode-title { color: var(--accent-blue); }
     .mode-card.ai .mode-title       { color: var(--accent-pink); }
 
-    .mode-description {
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.6;
-      margin-bottom: 18px;
-    }
-
-    .mode-features {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-bottom: 22px;
-    }
-
-    .mode-features li {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .mode-features li::before {
-      content: '—';
-      color: var(--border2);
-      flex-shrink: 0;
-    }
-
     .mode-btn {
       display: inline-flex;
       align-items: center;
@@ -237,6 +223,12 @@
   <p>Choose your creative mode</p>
 </div>
 
+<div class="project-desc">
+  This project explores the full loop of human–AI drawing collaboration.
+  Use the <strong>Drawing Recorder</strong> to capture your own strokes and export them as structured training data.
+  Use the <strong>SketchRNN Player</strong> to watch a pre-trained AI draw, or draw alongside it in real time.
+</div>
+
 <div class="modes">
   <a href="drawing_recorder.html" class="mode-card recorder">
     <div class="mode-header">
@@ -245,15 +237,6 @@
       </div>
       <div class="mode-title">Drawing Recorder</div>
     </div>
-    <div class="mode-description">
-      Record and save your drawing process with every stroke captured for training data.
-    </div>
-    <ul class="mode-features">
-      <li>Brush, eraser, fill tools</li>
-      <li>Timeline scrubber & playback</li>
-      <li>Export as ZIP with snapshots</li>
-      <li>Perfect for AI training data</li>
-    </ul>
     <span class="mode-btn">
       <i data-lucide="play"></i> Start Recording
     </span>
@@ -266,15 +249,6 @@
       </div>
       <div class="mode-title">SketchRNN Player</div>
     </div>
-    <div class="mode-description">
-      Experience AI-generated drawings with pre-trained SketchRNN models in real time.
-    </div>
-    <ul class="mode-features">
-      <li>30+ pre-trained models</li>
-      <li>AI auto-generates strokes</li>
-      <li>Draw alongside the AI</li>
-      <li>Timeline with seekable steps</li>
-    </ul>
     <span class="mode-btn">
       <i data-lucide="sparkles"></i> Play with AI
     </span>
