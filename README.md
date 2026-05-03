@@ -32,12 +32,18 @@ This is my small attempt at an answer.
 
 ```
 AIdrawing/
-├── index.html                        # Main page and script loading order
-├── drawing_recorder_p5.css           # UI styles
+├── launcher.html                     # 🎯 Mode selector (start here)
+├── drawing_recorder.html             # Optimized for recording mode
+├── sketch_rnn_player.html            # Optimized for AI playback mode
+├── index.html                        # Original combined version
+│
+├── drawing_recorder_p5.css           # Shared UI styles
 ├── drawing_recorder_p5.state.js      # Shared state and helper functions
 ├── drawing_recorder_p5.canvas.js     # p5 canvas, drawing, recording, export
 ├── drawing_recorder_p5.timeline.js   # Timeline rendering and scrubbing
 ├── drawing_recorder_p5.ai.js         # SketchRNN model loading and generation
+│
+├── MODES.md                          # Detailed documentation of each mode
 ├── train.py                          # PyTorch behavior cloning training script
 └── requirements.txt                  # Python training dependencies
 ```
@@ -46,13 +52,35 @@ AIdrawing/
 
 ## Run the App
 
-Open `index.html` in a browser, or serve the folder with a local static server:
+### 🎯 Quick Start
+Open **`launcher.html`** in a browser to choose between two specialized modes:
+
+1. **Drawing Recorder** (`drawing_recorder.html`) — Record your drawing strokes for training data
+2. **SketchRNN Player** (`sketch_rnn_player.html`) — Experience AI-generated drawings
+
+Or serve the folder with a local static server:
 
 ```bash
 npx serve .
 ```
 
 The app loads all dependencies from CDN (p5.js, ml5.js, JSZip, Lucide). No build step required.
+
+### About the Modes
+
+**Drawing Recorder** is optimized for:
+- Recording drawing sessions as structured data
+- Exporting PNG snapshots + JSON action logs
+- Training custom models
+- Timeline replay of your drawing process
+
+**SketchRNN Player** is optimized for:
+- Exploring 30+ pre-trained AI models
+- Watching AI generate drawings in real-time
+- Timeline replay of AI generation
+- Pure fun and experimentation
+
+> **Note:** The original `index.html` combines both modes. Use it if you need all features together.
 
 ---
 
@@ -176,12 +204,18 @@ AIdrawing 是一个基于 p5.js 的交互式绘图应用。它将你的每一笔
 
 ```
 AIdrawing/
-├── index.html                        # 主页面与脚本加载顺序
-├── drawing_recorder_p5.css           # 界面样式
+├── launcher.html                     # 🎯 模式选择器（从这里开始）
+├── drawing_recorder.html             # 优化的录制模式
+├── sketch_rnn_player.html            # 优化的 AI 体验模式
+├── index.html                        # 原始综合版本
+│
+├── drawing_recorder_p5.css           # 共享界面样式
 ├── drawing_recorder_p5.state.js      # 共享状态与辅助方法
 ├── drawing_recorder_p5.canvas.js     # p5 画布、绘制、录制、导出
 ├── drawing_recorder_p5.timeline.js   # 时间轴渲染与交互
 ├── drawing_recorder_p5.ai.js         # SketchRNN 模型加载与生成
+│
+├── MODES.md                          # 各个模式的详细文档
 ├── train.py                          # PyTorch 行为克隆训练脚本
 └── requirements.txt                  # Python 训练依赖
 ```
@@ -190,13 +224,35 @@ AIdrawing/
 
 ## 运行前端应用
 
-直接在浏览器中打开 `index.html`，或使用本地静态服务器：
+### 🎯 快速开始
+打开 **`launcher.html`** 在浏览器中选择两种专门优化的模式之一：
+
+1. **Drawing Recorder** (`drawing_recorder.html`) — 录制绘图笔触用于训练数据
+2. **SketchRNN Player** (`sketch_rnn_player.html`) — 体验 AI 生成的绘画
+
+或使用本地静态服务器：
 
 ```bash
 npx serve .
 ```
 
 所有依赖通过 CDN 加载（p5.js、ml5.js、JSZip、Lucide），无需构建步骤。
+
+### 关于各个模式
+
+**Drawing Recorder** 优化用于：
+- 将绘图会话记录为结构化数据
+- 导出 PNG 快照 + JSON 动作日志
+- 训练自定义模型
+- 时间轴回放你的绘制过程
+
+**SketchRNN Player** 优化用于：
+- 探索 30+ 个预训练 AI 模型
+- 实时观看 AI 生成绘画
+- 时间轴回放 AI 的生成过程
+- 纯粹的娱乐和实验
+
+> **注意**: 原始的 `index.html` 包含两种模式的所有功能。如果需要所有功能组合使用，请使用它。
 
 ---
 

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SketchRNN Player - AI Drawing Experience</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <script src="https://unpkg.com/ml5@0.12.2/dist/ml5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="drawing_recorder_p5.css">
+  <style>
+    body {
+      background: #f5f5f0;
+    }
+    #topbar {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    .ai-info {
+      font-size: 12px;
+      color: #666;
+      margin-top: 8px;
+      padding: 8px;
+      background: #f9f9f9;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="topbar">
+  <span class="app-name">SKETCHRNN PLAYER</span>
+  <button class="top-btn" onclick="undoLast()">
+    <i data-lucide="undo-2"></i> Undo
+  </button>
+  <button class="top-btn" onclick="clearDrawing()">
+    <i data-lucide="trash-2"></i> Clear
+  </button>
+  <button class="top-btn" onclick="window.location.href='drawing_recorder.html'" title="Switch to Recorder">
+    <i data-lucide="record"></i> To Recorder
+  </button>
+</div>
+
+<div id="toolbar">
+  <button class="tool-btn selected" id="btn-brush" onclick="selectTool('brush')" title="Brush">
+    <i data-lucide="pencil"></i>
+  </button>
+  <button class="tool-btn" id="btn-eraser" onclick="selectTool('eraser')" title="Eraser">
+    <i data-lucide="eraser"></i>
+  </button>
+  <button class="tool-btn" id="btn-fill" onclick="selectTool('fill')" title="Fill">
+    <i data-lucide="paint-bucket"></i>
+  </button>
+  <div class="tool-sep"></div>
+  <button class="tool-btn" onclick="undoLast()" title="Undo">
+    <i data-lucide="undo-2"></i>
+  </button>
+  <button class="tool-btn" onclick="clearDrawing()" title="Clear">
+    <i data-lucide="trash-2"></i>
+  </button>
+</div>
+
+<div id="canvas-area"></div>
+
+<div id="controls">
+  <div class="panel-section">
+    <div class="section-title">Color</div>
+    <div id="color-row"></div>
+  </div>
+
+  <div class="panel-section">
+    <div class="section-title">Brush Size</div>
+    <div class="slider-row">
+      <input type="range" id="brush-slider" min="2" max="60" value="12"
+             oninput="brushSize = parseInt(this.value); document.getElementById('size-label').textContent = brushSize + 'px';">
+      <span class="slider-val" id="size-label">12px</span>
+    </div>
+  </div>
+
+  <div class="panel-section" id="sketch-panel">
+    <div class="section-title">SketchRNN Model</div>
+    <select id="ai-model">
+      <option value="cat">🐱 Cat</option>
+      <option value="bird">🦅 Bird</option>
+      <option value="flower">🌸 Flower</option>
+      <option value="house">🏠 House</option>
+      <option value="tree">🌳 Tree</option>
+      <option value="bicycle">🚲 Bicycle</option>
+      <option value="aircraft">✈️ Aircraft</option>
+      <option value="ambulance">🚑 Ambulance</option>
+      <option value="apple">🍎 Apple</option>
+      <option value="arm">💪 Arm</option>
+      <option value="axe">🪓 Axe</option>
+      <option value="banana">🍌 Banana</option>
+      <option value="baseball">⚾ Baseball</option>
+      <option value="basket">🧺 Basket</option>
+      <option value="bear">🐻 Bear</option>
+      <option value="bee">🐝 Bee</option>
+      <option value="bell">🔔 Bell</option>
+      <option value="bench">🪑 Bench</option>
+      <option value="book">📖 Book</option>
+      <option value="bowtie">🎀 Bowtie</option>
+      <option value="brain">🧠 Brain</option>
+      <option value="bread">🍞 Bread</option>
+      <option value="bridge">🌉 Bridge</option>
+      <option value="broccoli">🥦 Broccoli</option>
+      <option value="butterfly">🦋 Butterfly</option>
+      <option value="cactus">🌵 Cactus</option>
+      <option value="cake">🎂 Cake</option>
+      <option value="camel">🐪 Camel</option>
+      <option value="camera">📷 Camera</option>
+      <option value="candle">🕯️ Candle</option>
+      <option value="canoe">🛶 Canoe</option>
+      <option value="car">🚗 Car</option>
+      <option value="carrot">🥕 Carrot</option>
+      <option value="castle">🏰 Castle</option>
+      <option value="caterpillar">🐛 Caterpillar</option>
+      <option value="chair">🪑 Chair</option>
+      <option value="church">⛪ Church</option>
+      <option value="circle">⭕ Circle</option>
+      <option value="compass">🧭 Compass</option>
+      <option value="computer">💻 Computer</option>
+      <option value="cookie">🍪 Cookie</option>
+      <option value="couch">🛋️ Couch</option>
+      <option value="cow">🐄 Cow</option>
+      <option value="crab">🦀 Crab</option>
+      <option value="crane">🏗️ Crane</option>
+      <option value="crocodile">🐊 Crocodile</option>
+      <option value="crown">👑 Crown</option>
+      <option value="cup">☕ Cup</option>
+      <option value="diamond">💎 Diamond</option>
+      <option value="dinosaur">🦖 Dinosaur</option>
+      <option value="dog">🐕 Dog</option>
+      <option value="dolphin">🐬 Dolphin</option>
+      <option value="donut">🍩 Donut</option>
+      <option value="door">🚪 Door</option>
+      <option value="dragon">🐉 Dragon</option>
+      <option value="dress">👗 Dress</option>
+      <option value="drum">🥁 Drum</option>
+      <option value="duck">🦆 Duck</option>
+      <option value="elephant">🐘 Elephant</option>
+      <option value="eye">👁️ Eye</option>
+      <option value="face">😀 Face</option>
+      <option value="fan">🌀 Fan</option>
+      <option value="feather">🪶 Feather</option>
+      <option value="fire">🔥 Fire</option>
+      <option value="fish">🐟 Fish</option>
+      <option value="flamingo">🦩 Flamingo</option>
+      <option value="foot">🦶 Foot</option>
+      <option value="fork">🍴 Fork</option>
+      <option value="frog">🐸 Frog</option>
+      <option value="garden">🌷 Garden</option>
+      <option value="giraffe">🦒 Giraffe</option>
+      <option value="guitar">🎸 Guitar</option>
+      <option value="hamburger">🍔 Hamburger</option>
+      <option value="hand">✋ Hand</option>
+      <option value="hat">🎩 Hat</option>
+      <option value="hedgehog">🦔 Hedgehog</option>
+      <option value="helicopter">🚁 Helicopter</option>
+      <option value="hexagon">⬡ Hexagon</option>
+      <option value="horse">🐴 Horse</option>
+      <option value="hot_air_balloon">🎈 Hot Air Balloon</option>
+      <option value="ice_cream">🍦 Ice Cream</option>
+      <option value="kangaroo">🦘 Kangaroo</option>
+      <option value="key">🔑 Key</option>
+      <option value="knife">🔪 Knife</option>
+      <option value="ladder">🪜 Ladder</option>
+      <option value="lantern">🏮 Lantern</option>
+      <option value="leaf">🍃 Leaf</option>
+      <option value="leg">🦵 Leg</option>
+      <option value="lollipop">🍭 Lollipop</option>
+      <option value="map">🗺️ Map</option>
+      <option value="mermaid">🧜 Mermaid</option>
+      <option value="monkey">🐒 Monkey</option>
+      <option value="moon">🌙 Moon</option>
+      <option value="mosquito">🦟 Mosquito</option>
+      <option value="motorbike">🏍️ Motorbike</option>
+      <option value="mountain">⛰️ Mountain</option>
+      <option value="mouse">🐭 Mouse</option>
+      <option value="mushroom">🍄 Mushroom</option>
+      <option value="octopus">🐙 Octopus</option>
+      <option value="owl">🦉 Owl</option>
+      <option value="panda">🐼 Panda</option>
+      <option value="parachute">🪂 Parachute</option>
+      <option value="parrot">🦜 Parrot</option>
+      <option value="peas">🫛 Peas</option>
+      <option value="penguin">🐧 Penguin</option>
+      <option value="pig">🐷 Pig</option>
+      <option value="pineapple">🍍 Pineapple</option>
+      <option value="pizza">🍕 Pizza</option>
+      <option value="rabbit">🐰 Rabbit</option>
+      <option value="rain">🌧️ Rain</option>
+      <option value="rainbow">🌈 Rainbow</option>
+      <option value="rhinoceros">🦏 Rhinoceros</option>
+      <option value="rifle">🔫 Rifle</option>
+      <option value="rocket">🚀 Rocket</option>
+      <option value="roller_coaster">🎢 Roller Coaster</option>
+      <option value="rooster">🐓 Rooster</option>
+      <option value="sailboat">⛵ Sailboat</option>
+      <option value="scorpion">🦂 Scorpion</option>
+      <option value="sea_turtle">🐢 Sea Turtle</option>
+      <option value="shark">🦈 Shark</option>
+      <option value="sheep">🐑 Sheep</option>
+      <option value="shoe">👟 Shoe</option>
+      <option value="skull">💀 Skull</option>
+      <option value="snail">🐌 Snail</option>
+      <option value="snake">🐍 Snake</option>
+      <option value="snowflake">❄️ Snowflake</option>
+      <option value="spider">🕷️ Spider</option>
+      <option value="spoon">🥄 Spoon</option>
+      <option value="square">⬛ Square</option>
+      <option value="squirrel">🐿️ Squirrel</option>
+      <option value="star">⭐ Star</option>
+      <option value="steak">🥩 Steak</option>
+      <option value="strawberry">🍓 Strawberry</option>
+      <option value="submarine">🤿 Submarine</option>
+      <option value="swan">🦢 Swan</option>
+      <option value="sword">⚔️ Sword</option>
+      <option value="table">🪑 Table</option>
+      <option value="tiger">🐯 Tiger</option>
+      <option value="toothbrush">🪥 Toothbrush</option>
+      <option value="tornado">🌪️ Tornado</option>
+      <option value="train">🚂 Train</option>
+      <option value="truck">🚛 Truck</option>
+      <option value="trumpet">🎺 Trumpet</option>
+      <option value="turtle">🐢 Turtle</option>
+      <option value="umbrella">☂️ Umbrella</option>
+      <option value="vase">🏺 Vase</option>
+      <option value="violin">🎻 Violin</option>
+      <option value="volcano">🌋 Volcano</option>
+      <option value="waterfall">💧 Waterfall</option>
+      <option value="whale">🐳 Whale</option>
+      <option value="windmill">🌬️ Windmill</option>
+      <option value="wolf">🐺 Wolf</option>
+      <option value="zebra">🦓 Zebra</option>
+    </select>
+    <button class="action-btn" id="load-btn" onclick="loadSketchModel()">
+      <i data-lucide="brain"></i> Load Model
+    </button>
+    <div class="ai-info">
+      <div>Model: <span id="ai-model-name">-</span></div>
+      <div>Steps: <span id="step-display">0</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="timeline-bar">
+  <div id="ai-player-center" aria-label="AI controls">
+    <button class="ai-main-btn start" onclick="startSketchRNN()" title="Start AI Draw">
+      <i data-lucide="play"></i>
+    </button>
+    <button class="ai-main-btn stop" onclick="stopSketchRNN()" title="Stop AI Draw">
+      <i data-lucide="square"></i>
+    </button>
+    <span id="ai-status">status: idle</span>
+  </div>
+
+  <div class="tl-header">
+    <span class="tl-title">Timeline</span>
+    <span id="tl-label">step 0</span>
+  </div>
+
+  <div class="tl-track">
+    <div id="tl-icons"></div>
+    <input type="range" id="timeline" min="0" max="0" value="0"
+           oninput="seekTo(parseInt(this.value))">
+    <div id="tl-cursor" style="left:0"></div>
+  </div>
+</div>
+
+<script src="drawing_recorder_p5.state.js"></script>
+<script src="drawing_recorder_p5.timeline.js"></script>
+<script src="drawing_recorder_p5.ai.js"></script>
+<script src="drawing_recorder_p5.canvas.js"></script>
+<script>
+  lucide.createIcons();
+
+  function updateModelDisplay() {
+    document.getElementById('ai-model-name').textContent = document.getElementById('ai-model').value || '-';
+  }
+  document.getElementById('ai-model').addEventListener('change', updateModelDisplay);
+  updateModelDisplay();
+</script>
+
+</body>
+</html>

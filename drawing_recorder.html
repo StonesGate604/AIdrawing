@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Drawing Recorder - Record Your Strokes</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="drawing_recorder_p5.css">
+  <style>
+    body {
+      background: #f0f0f0;
+    }
+    #topbar {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+  </style>
+</head>
+<body>
+
+<div id="topbar">
+  <span class="app-name">DRAWING RECORDER</span>
+  <button class="top-btn" onclick="undoLast()">
+    <i data-lucide="undo-2"></i> Undo
+  </button>
+  <button class="top-btn" onclick="clearDrawing()">
+    <i data-lucide="trash-2"></i> Clear
+  </button>
+</div>
+
+<div id="toolbar">
+  <button class="tool-btn selected" id="btn-brush" onclick="selectTool('brush')" title="Brush">
+    <i data-lucide="pencil"></i>
+  </button>
+  <button class="tool-btn" id="btn-eraser" onclick="selectTool('eraser')" title="Eraser">
+    <i data-lucide="eraser"></i>
+  </button>
+  <button class="tool-btn" id="btn-fill" onclick="selectTool('fill')" title="Fill">
+    <i data-lucide="paint-bucket"></i>
+  </button>
+  <div class="tool-sep"></div>
+  <button class="tool-btn" onclick="undoLast()" title="Undo">
+    <i data-lucide="undo-2"></i>
+  </button>
+  <button class="tool-btn" onclick="clearDrawing()" title="Clear">
+    <i data-lucide="trash-2"></i>
+  </button>
+</div>
+
+<div id="canvas-area"></div>
+
+<div id="controls">
+  <div class="panel-section">
+    <div class="section-title">Color</div>
+    <div id="color-row"></div>
+  </div>
+
+  <div class="panel-section">
+    <div class="section-title">Brush Size</div>
+    <div class="slider-row">
+      <input type="range" id="brush-slider" min="2" max="60" value="12"
+             oninput="brushSize = parseInt(this.value); document.getElementById('size-label').textContent = brushSize + 'px';">
+      <span class="slider-val" id="size-label">12px</span>
+    </div>
+  </div>
+
+  <div class="panel-section">
+    <div class="section-title">Recording</div>
+    <button class="action-btn" id="rec-btn" onclick="toggleRecording()">
+      <i data-lucide="circle"></i> Start Recording
+    </button>
+    <button class="action-btn" onclick="saveData()">
+      <i data-lucide="download"></i> Save Data
+    </button>
+    <button class="action-btn" onclick="uploadData()">
+      <i data-lucide="upload"></i> Upload Data
+    </button>
+    <div id="rec-info">
+      <div>Status: <span id="rec-status">idle</span></div>
+      <div>Steps: <span id="step-display">0</span></div>
+      <div>Sessions: <span id="session-display">0</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="timeline-bar">
+  <div class="tl-header">
+    <span class="tl-title">Timeline</span>
+    <span id="tl-label">step 0</span>
+  </div>
+
+  <div class="tl-track">
+    <div id="tl-icons"></div>
+    <input type="range" id="timeline" min="0" max="0" value="0"
+           oninput="seekTo(parseInt(this.value))">
+    <div id="tl-cursor" style="left:0"></div>
+  </div>
+</div>
+
+<script src="drawing_recorder_p5.state.js"></script>
+<script src="drawing_recorder_p5.canvas.js"></script>
+<script src="drawing_recorder_p5.timeline.js"></script>
+<script>
+  // Hide AI-related UI elements
+  const sketchPanel = document.getElementById('sketch-panel');
+  const timelineAiControls = document.getElementById('ai-player-center');
+  if (sketchPanel) sketchPanel.style.display = 'none';
+  if (timelineAiControls) timelineAiControls.style.display = 'none';
+  
+  // Initialize icon rendering
+  lucide.createIcons();
+</script>
+
+</body>
+</html>

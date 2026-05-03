@@ -1,123 +1,288 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Drawing Recorder</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
-  <script src="https://unpkg.com/ml5@0.12.2/dist/ml5.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <title>AI Drawing Studio</title>
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
-  <link rel="stylesheet" href="drawing_recorder_p5.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #1a1a1a;
+      --panel: #232323;
+      --panel2: #2a2a2a;
+      --border: #333333;
+      --border2: #3d3d3d;
+      --accent-blue: #4d9fff;
+      --accent-pink: #f5576c;
+      --accent-green: #aaff44;
+      --text: #d4d4d4;
+      --muted: #555;
+      --hover: #2f2f2f;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'IBM Plex Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .header-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .header h1 { 
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 28px;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: 0.04em;
+    }
+
+    .header h1 span {
+      color: var(--accent-blue);
+    }
+
+    .header p {
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .modes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      max-width: 760px;
+      width: 100%;
+    }
+
+    @media (max-width: 580px) {
+      .modes { grid-template-columns: 1fr; }
+    }
+
+    .mode-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 28px 24px;
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+      display: block;
+      transition: border-color 0.15s, background 0.15s, transform 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mode-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .mode-card.recorder::before { background: var(--accent-blue); }
+    .mode-card.ai::before       { background: var(--accent-pink); }
+
+    .mode-card:hover {
+      background: var(--hover);
+      border-color: var(--border2);
+      transform: translateY(-2px);
+    }
+
+    .mode-card:hover::before { opacity: 1; }
+
+    .mode-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .mode-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .mode-icon svg { width: 18px; height: 18px; stroke: currentColor; }
+
+    .mode-card.recorder .mode-icon {
+      background: rgba(77, 159, 255, 0.12);
+      border: 1px solid rgba(77, 159, 255, 0.25);
+      color: var(--accent-blue);
+    }
+
+    .mode-card.ai .mode-icon {
+      background: rgba(245, 87, 108, 0.12);
+      border: 1px solid rgba(245, 87, 108, 0.25);
+      color: var(--accent-pink);
+    }
+
+    .mode-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+    }
+
+    .mode-card.recorder .mode-title { color: var(--accent-blue); }
+    .mode-card.ai .mode-title       { color: var(--accent-pink); }
+
+    .mode-description {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 18px;
+    }
+
+    .mode-features {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 22px;
+    }
+
+    .mode-features li {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mode-features li::before {
+      content: '—';
+      color: var(--border2);
+      flex-shrink: 0;
+    }
+
+    .mode-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 16px;
+      border-radius: 5px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      border: 1px solid;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.12s, color 0.12s;
+    }
+
+    .mode-btn svg { width: 13px; height: 13px; stroke: currentColor; }
+
+    .mode-card.recorder .mode-btn {
+      background: rgba(77, 159, 255, 0.1);
+      color: var(--accent-blue);
+      border-color: rgba(77, 159, 255, 0.3);
+    }
+    .mode-card.recorder .mode-btn:hover {
+      background: rgba(77, 159, 255, 0.2);
+    }
+
+    .mode-card.ai .mode-btn {
+      background: rgba(245, 87, 108, 0.1);
+      color: var(--accent-pink);
+      border-color: rgba(245, 87, 108, 0.3);
+    }
+    .mode-card.ai .mode-btn:hover {
+      background: rgba(245, 87, 108, 0.2);
+    }
+
+    .footer {
+      margin-top: 40px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+    }
+  </style>
 </head>
 <body>
 
-<div id="topbar">
-  <span class="app-name">AI DRAWING STUDIO</span>
-  <button class="top-btn" onclick="undoLast()">
-    <i data-lucide="undo-2"></i> Undo
-  </button>
-  <button class="top-btn" onclick="clearDrawing()">
-    <i data-lucide="trash-2"></i> Clear
-  </button>
+<div class="header">
+  <div class="header-label">v1.0 · p5.js + ml5.js</div>
+  <h1>AI <span>DRAWING</span> STUDIO</h1>
+  <p>Choose your creative mode</p>
 </div>
 
-<div id="toolbar">
-  <button class="tool-btn selected" id="btn-brush" onclick="selectTool('brush')" title="Brush">
-    <i data-lucide="pencil"></i>
-  </button>
-  <button class="tool-btn" id="btn-eraser" onclick="selectTool('eraser')" title="Eraser">
-    <i data-lucide="eraser"></i>
-  </button>
-  <button class="tool-btn" id="btn-fill" onclick="selectTool('fill')" title="Fill">
-    <i data-lucide="paint-bucket"></i>
-  </button>
-  <div class="tool-sep"></div>
-  <button class="tool-btn" onclick="undoLast()" title="Undo">
-    <i data-lucide="undo-2"></i>
-  </button>
-  <button class="tool-btn" onclick="clearDrawing()" title="Clear">
-    <i data-lucide="trash-2"></i>
-  </button>
-</div>
-
-<div id="canvas-area"></div>
-
-<div id="controls">
-  <div class="panel-section">
-    <div class="section-title">Color</div>
-    <div id="color-row"></div>
-  </div>
-
-  <div class="panel-section">
-    <div class="section-title">Brush Size</div>
-    <div class="slider-row">
-      <input type="range" id="brush-slider" min="2" max="60" value="12"
-             oninput="brushSize = parseInt(this.value); document.getElementById('size-label').textContent = brushSize + 'px';">
-      <span class="slider-val" id="size-label">12px</span>
+<div class="modes">
+  <a href="drawing_recorder.html" class="mode-card recorder">
+    <div class="mode-header">
+      <div class="mode-icon">
+        <i data-lucide="circle-dot"></i>
+      </div>
+      <div class="mode-title">Drawing Recorder</div>
     </div>
-  </div>
-
-  <div class="panel-section">
-    <div class="section-title">Record</div>
-    <button class="action-btn" id="rec-btn" onclick="toggleRecording()">
-      <i data-lucide="circle"></i> Start Recording
-    </button>
-    <button class="action-btn" onclick="saveData()">
-      <i data-lucide="download"></i> Save Data
-    </button>
-    <button class="action-btn" onclick="uploadData()">
-  <i data-lucide="upload"></i> Upload Data
-</button>
-    <div id="rec-info">
-      <div>Status: <span id="rec-status">idle</span></div>
-      <div>Steps: <span id="step-display">0</span></div>
-      <div>Sessions: <span id="session-display">0</span></div>
+    <div class="mode-description">
+      Record and save your drawing process with every stroke captured for training data.
     </div>
-  </div>
+    <ul class="mode-features">
+      <li>Brush, eraser, fill tools</li>
+      <li>Timeline scrubber & playback</li>
+      <li>Export as ZIP with snapshots</li>
+      <li>Perfect for AI training data</li>
+    </ul>
+    <span class="mode-btn">
+      <i data-lucide="play"></i> Start Recording
+    </span>
+  </a>
 
-  <div class="panel-section" id="sketch-panel">
-    <div class="section-title">SketchRNN</div>
-    <select id="ai-model">
-      <option value="cat">cat</option>
-      <option value="bird">bird</option>
-      <option value="flower">flower</option>
-      <option value="house">house</option>
-      <option value="tree">tree</option>
-      <option value="bicycle">bicycle</option>
-    </select>
-    <button class="action-btn" onclick="loadSketchModel()">
-      <i data-lucide="brain"></i> Load Model
-    </button>
-  </div>
+  <a href="sketch_rnn_player.html" class="mode-card ai">
+    <div class="mode-header">
+      <div class="mode-icon">
+        <i data-lucide="brain"></i>
+      </div>
+      <div class="mode-title">SketchRNN Player</div>
+    </div>
+    <div class="mode-description">
+      Experience AI-generated drawings with pre-trained SketchRNN models in real time.
+    </div>
+    <ul class="mode-features">
+      <li>30+ pre-trained models</li>
+      <li>AI auto-generates strokes</li>
+      <li>Draw alongside the AI</li>
+      <li>Timeline with seekable steps</li>
+    </ul>
+    <span class="mode-btn">
+      <i data-lucide="sparkles"></i> Play with AI
+    </span>
+  </a>
 </div>
 
-<div id="timeline-bar">
-  <div id="ai-player-center" aria-label="AI controls">
-    <button class="ai-main-btn start" onclick="startSketchRNN()" title="Start AI Draw">
-      <i data-lucide="play"></i>
-    </button>
-    <button class="ai-main-btn stop" onclick="stopSketchRNN()" title="Stop AI Draw">
-      <i data-lucide="square"></i>
-    </button>
-    <span id="ai-status">status: idle</span>
-  </div>
+<div class="footer">built with p5.js · ml5.js · lucide</div>
 
-  <div class="tl-header">
-    <span class="tl-title">Timeline</span>
-    <span id="tl-label">step 0</span>
-  </div>
-
-  <div class="tl-track">
-    <div id="tl-icons"></div>
-    <input type="range" id="timeline" min="0" max="0" value="0"
-           oninput="seekTo(parseInt(this.value))">
-    <div id="tl-cursor" style="left:0"></div>
-  </div>
-</div>
-
-<script src="drawing_recorder_p5.state.js"></script>
-<script src="drawing_recorder_p5.timeline.js"></script>
-<script src="drawing_recorder_p5.ai.js"></script>
-<script src="drawing_recorder_p5.canvas.js"></script>
 <script>
   lucide.createIcons();
 </script>
