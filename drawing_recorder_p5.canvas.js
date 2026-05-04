@@ -308,7 +308,7 @@ async function uploadData() {
     );
 
     try {
-        const res = await fetch('https://http://34.61.122.32:3000/stats/upload', {
+        const res = await fetch('http://34.61.122.32:3000/upload', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ sessions: payload })
